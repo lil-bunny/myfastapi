@@ -1,28 +1,18 @@
-name: Test FastAPI
+name: Notify on Failure
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_run:
+    workflows: ["Test FastAPI"]
+    types:
+      - completed
 
 jobs:
-  test:
+  notify:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
+      - name: Send Webhook on Failure
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run tests
-        run: |
-          pytest
+          curl -X POST -H "Content-Type: application/json" \
+          -d '{"text":"❌ FastAPI CI Failed! Check GitHub Actions."}' \
+          https://webhook.site/1ab697f5-a8ec-4ce4-93ac-517b0768ea16
