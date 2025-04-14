@@ -34,7 +34,7 @@ jobs:
           pytest > result.log 2>&1 || true
 
       - name: Upload test logs as artifact
-        uses: actions/upload-artifact@v2     # ← switched to v2
+        uses: actions/upload-artifact@v2.3.1   # pinned to v2.3.1
         with:
           name: test-logs
           path: result.log
