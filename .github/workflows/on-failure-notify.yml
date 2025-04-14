@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Download test logs artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v2
         with:
           name: test-logs
           path: ./logs
