@@ -10,27 +10,33 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest  # Using the latest Ubuntu for CI environment
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3  # Checkout code from the repo
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # You can specify the Python version you need
+          python-version: '3.10'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r app/requirements.txt  # Installing dependencies for FastAPI app
+          pip install -r app/requirements.txt
 
       - name: Run FastAPI app
         run: |
           nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 &
-          sleep 5  # Wait for the server to start
+          sleep 5
 
       - name: Run tests
         run: |
-          pytest  # Running pytest to test the FastAPI app
+          pytest > result.log || echo "Tests failed" > result.log  # Capture logs in result.log
+          
+      - name: Upload test logs as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-logs
+          path: result.log
