@@ -1,4 +1,4 @@
-name: Notify on Failure
+name: Send failure logs via webhook
 
 on:
   workflow_run:
@@ -11,8 +11,15 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Send Webhook on Failure
+      - name: Download test logs artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: test-logs
+          path: ./logs
+
+      - name: Send logs to webhook.site
         run: |
+          LOGS=$(cat ./logs/result.log | tail -n 100 | jq -Rs .)  # Send last 100 lines of the logs
           curl -X POST -H "Content-Type: application/json" \
-          -d '{"text":"❌ FastAPI CI Failed! Check GitHub Actions."}' \
+          -d "{\"logs\": $LOGS}" \
           https://webhook.site/1ab697f5-a8ec-4ce4-93ac-517b0768ea16
