@@ -10,6 +10,7 @@ jobs:
   notify:
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
+
     steps:
       - name: Download test logs artifact
         uses: actions/download-artifact@v3
@@ -19,7 +20,8 @@ jobs:
 
       - name: Send logs to webhook.site
         run: |
-          LOGS=$(cat ./logs/result.log | tail -n 100 | jq -Rs .)  # Send last 100 lines of the logs
+          # Read last 200 lines to avoid huge payload
+          LOGS=$(tail -n 200 ./logs/result.log | jq -Rs .)
           curl -X POST -H "Content-Type: application/json" \
-          -d "{\"logs\": $LOGS}" \
-          https://webhook.site/1ab697f5-a8ec-4ce4-93ac-517b0768ea16
+            -d "{\"text\": \"❌ FastAPI CI failed! Here are the last 200 lines of logs:\", \"logs\": $LOGS}" \
+            https://webhook.site/1ab697f5-a8ec-4ce4-93ac-517b0768ea16
