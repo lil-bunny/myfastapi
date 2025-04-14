@@ -1,4 +1,4 @@
-name: FastAPI CI with Inline Failure Notification
+name: FastAPI CI Workflow
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test-and-notify:
+  test:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -38,22 +38,9 @@ jobs:
           pytest > result.log 2>&1 || true
         continue-on-error: true
 
-      - name: Upload logs for debugging (artifact)
-        if: always()
-        uses: actions/upload-artifact@v3
+      - name: Upload test logs as artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: ci-logs
+          name: test-logs
           path: result.log
-
-      - name: Notify on failure
-        if: steps.run_tests.outcome == 'failure' || steps.run_tests.conclusion == 'failure'
-        run: |
-          echo "Tests failed—sending logs to webhook"
-          PAYLOAD=$(
-            jq -Rn --arg text "❌ FastAPI CI failed on $GITHUB_REF" \
-                  --arg logs "$(tail -n 200 result.log)" \
-                  '{text: $text, logs: $logs}'
-          )
-          curl -X POST -H "Content-Type: application/json" \
-               -d "$PAYLOAD" \
-               https://webhook.site/1ab697f5-a8ec-4ce4-93ac-517b0768ea16
+          if-no-files-found: error
