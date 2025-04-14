@@ -1,4 +1,4 @@
-name: FastAPI CI Workflow
+name: FastAPI CI + Failure Notification
 
 on:
   push:
@@ -38,9 +38,22 @@ jobs:
           pytest > result.log 2>&1 || true
         continue-on-error: true
 
-      - name: Upload test logs as artifact
+      - name: Upload logs for inspection
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-logs
+          name: ci-logs
           path: result.log
-          if-no-files-found: error
+
+      - name: Notify on failure
+        if: steps.run_tests.conclusion == 'failure'
+        run: |
+          echo "Tests failed—sending logs to webhook"
+          PAYLOAD=$(
+            jq -Rn --arg text "❌ FastAPI CI failed on $GITHUB_REPOSITORY@$GITHUB_REF" \
+                  --arg logs "$(tail -n 200 result.log)" \
+                  '{text: $text, logs: $logs}'
+          )
+          curl -X POST -H "Content-Type: application/json" \
+               -d "$PAYLOAD" \
+               https://webhook.site/1ab697f5-a8ec-4ce4-93ac-517b0768ea16
