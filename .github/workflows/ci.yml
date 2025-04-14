@@ -2,11 +2,9 @@ name: FastAPI CI Workflow
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   test:
@@ -14,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -36,7 +34,7 @@ jobs:
           pytest > result.log 2>&1 || true
 
       - name: Upload test logs as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2     # ← switched to v2
         with:
           name: test-logs
           path: result.log
